@@ -180,7 +180,7 @@ static unsigned activeOsdElementCount = 0;
 static uint8_t activeOsdElementArray[OSD_ITEM_COUNT];
 static bool backgroundLayerSupported = false;
 
-extern float rMat[3][3];
+//extern float rMat[3][3];
 
 // Blink control
 static bool blinkState = true;
@@ -585,8 +585,7 @@ static void osdElementAntiGravity(osdElementParms_t *element)
 
 #ifdef USE_ACC
 
-static void osdElementArtificialHorizon(osdElementParms_t *element)
-{
+static void osdElementArtificialHorizon(osdElementParms_t *element){
     // Get pitch and roll limits in tenths of degrees
     const int maxPitch = osdConfig()->ahMaxPitch * 10;
     const int maxRoll = osdConfig()->ahMaxRoll * 10;
@@ -607,52 +606,40 @@ static void osdElementArtificialHorizon(osdElementParms_t *element)
         }
     }
 
-   float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
-   int thetaB; // pitch from body frame to up vector
-   int psiBSign; // psi from body frame to up vector
-   char arrowDir; // direction to draw arrow
-   float arrowDirFloat;
-   if(attitude.values.pitch>0.0){ //nose down
-       thetaB = asinf(earthUpinBodyFrame[2]) * (1800.0f / M_PIf); // get theta
-       psiBSign = -1; // correct the sign
-       arrowDirFloat = atan2_approx(-earthUpinBodyFrame[1], earthUpinBodyFrame[2])*180.0/M_PIf;
-   }
-   else{// nose up
-       thetaB = -asinf(earthUpinBodyFrame[2]) * (1800.0f / M_PIf); // get theta 
-       psiBSign = 1; // correct the sign
-       arrowDirFloat = -atan2_approx(-earthUpinBodyFrame[1], -earthUpinBodyFrame[2])*180.0/M_PIf;
-   }
-   
-   //Select which arrow points to the up vector when pitchinng up or down vector when pitching down
-   if     (arrowDirFloat >= -180.00 && arrowDirFloat < -168.75)arrowDir = SYM_ARROW_SOUTH;
-   else if(arrowDirFloat >= -168.75 && arrowDirFloat < -146.25)arrowDir = SYM_ARROW_16;
-   else if(arrowDirFloat >= -146.25 && arrowDirFloat < -123.75)arrowDir = SYM_ARROW_15;
-   else if(arrowDirFloat >= -123.75 && arrowDirFloat < -101.25)arrowDir = SYM_ARROW_14;
-   else if(arrowDirFloat >= -101.25 && arrowDirFloat <  -78.75)arrowDir = SYM_ARROW_WEST;
-   else if(arrowDirFloat >=  -78.75 && arrowDirFloat <  -56.25)arrowDir = SYM_ARROW_12;
-   else if(arrowDirFloat >=  -56.25 && arrowDirFloat <  -33.75)arrowDir = SYM_ARROW_11;
-   else if(arrowDirFloat >=  -33.75 && arrowDirFloat <  -11.25)arrowDir = SYM_ARROW_10;
-   else if(arrowDirFloat >=  -11.25 && arrowDirFloat <   11.25)arrowDir = SYM_ARROW_NORTH;
-   else if(arrowDirFloat >=   11.25 && arrowDirFloat <   33.75)arrowDir = SYM_ARROW_8;
-   else if(arrowDirFloat >=   33.75 && arrowDirFloat <   56.25)arrowDir = SYM_ARROW_7;
-   else if(arrowDirFloat >=   56.25 && arrowDirFloat <   78.75)arrowDir = SYM_ARROW_6;
-   else if(arrowDirFloat >=   78.75 && arrowDirFloat <  101.25)arrowDir = SYM_ARROW_EAST;
-   else if(arrowDirFloat >=  101.25 && arrowDirFloat <  123.75)arrowDir = SYM_ARROW_4;
-   else if(arrowDirFloat >=  123.75 && arrowDirFloat <  146.25)arrowDir = SYM_ARROW_3;
-   else if(arrowDirFloat >=  146.25 && arrowDirFloat <  168.75)arrowDir = SYM_ARROW_2;
-   else if(arrowDirFloat >=  168.75 && arrowDirFloat <  180.00)arrowDir = SYM_ARROW_SOUTH;
+    if(abs(attitude.values.pitch)>600){
+     float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
+     int thetaB; // pitch from body frame to up vector
+     int psiBSign; // psi from body frame to up vector
 
-   int psiB = psiBSign*asinf(earthUpinBodyFrame[1]) * (1800.0f / M_PIf)/40; // calculate the yaw from body to up/down vector
+     char buf[3];
+
+     if(attitude.values.pitch>0.0){ //nose down
+         thetaB = asinf(earthUpinBodyFrame[2]) * (1800.0f / M_PIf); // get theta
+         psiBSign = -1; // correct the sign
+         buf[0] = 'D';
+         buf[1] = 'N';
+         buf[2] = 0;
+     }
+     else{// nose up
+         thetaB = -asinf(earthUpinBodyFrame[2]) * (1800.0f / M_PIf); // get theta 
+         psiBSign = 1; // correct the sign
+         buf[0] = 'U';
+         buf[1] = 'P';
+         buf[2] = 0;
+     }
+
+     int psiB = psiBSign*asinf(earthUpinBodyFrame[1]) * (1800.0f / M_PIf)/40; // calculate the yaw from body to up/down vector
  
-   if (maxPitch > 0){
-       thetaB = ((thetaB*25)/maxPitch); // scale if appropriate
-   }
+     if (maxPitch > 0){
+         thetaB = ((thetaB*25)/maxPitch); // scale if appropriate
+     }
 
-   thetaB -= 41; // offset 41 = 4 * AH_SYMBOL_COUNT + 5
-   thetaB *= -1; // correct the sign
-   
-   // draw the arrow
-   osdDisplayWriteChar(element, element->elemPosX+psiB, element->elemPosY + thetaB/AH_SYMBOL_COUNT, DISPLAYPORT_ATTR_NONE, arrowDir);
+     thetaB -= 41; // offset 41 = 4 * AH_SYMBOL_COUNT + 5
+     thetaB *= -1; // correct the sign
+
+     osdDisplayWrite(element, element->elemPosX+psiB, element->elemPosY + thetaB/AH_SYMBOL_COUNT, DISPLAYPORT_ATTR_NONE, buf);
+
+    }
 
    element->drawElement = false;  // element already drawn
 }
