@@ -321,6 +321,7 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->osdProfileIndex = 1;
     osdConfig->ahInvert = false;
+    osdConfig->upDownRefOn = false;
     for (int i=0; i < OSD_PROFILE_COUNT; i++) {
         osdConfig->profile[i][0] = '\0';
     }
@@ -363,6 +364,7 @@ void pgResetFn_osdElementConfig(osdElementConfig_t *osdElementConfig)
     osdElementConfig->item_pos[OSD_ARTIFICIAL_HORIZON] = OSD_POS(14, 2);
     osdElementConfig->item_pos[OSD_HORIZON_SIDEBARS]   = OSD_POS(14, 6);
     osdElementConfig->item_pos[OSD_CAMERA_FRAME]       = OSD_POS(3, 1);
+    osdElementConfig->item_pos[OSD_UP_DOWN_REFERENCE]  = OSD_POS(14,2);
 }
 
 static void osdDrawLogo(int x, int y)
