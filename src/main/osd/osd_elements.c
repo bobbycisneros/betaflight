@@ -605,7 +605,7 @@ static void osdElementArtificialHorizon(osdElementParms_t *element){
             osdDisplayWriteChar(element, element->elemPosX + x, element->elemPosY + (y / AH_SYMBOL_COUNT), DISPLAYPORT_ATTR_NONE, (SYM_AH_BAR9_0 + (y % AH_SYMBOL_COUNT)));
         }
     }
-
+/*
     if(abs(attitude.values.pitch)>600){
      float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
      int thetaB; // pitch from body frame to up vector
@@ -640,7 +640,7 @@ static void osdElementArtificialHorizon(osdElementParms_t *element){
      osdDisplayWrite(element, element->elemPosX+psiB, element->elemPosY + thetaB/AH_SYMBOL_COUNT, DISPLAYPORT_ATTR_NONE, buf);
 
     }
-
+*/
    element->drawElement = false;  // element already drawn
 }
 
@@ -678,6 +678,72 @@ static void osdElementUpDownReference(osdElementParms_t *element)
     element->drawElement = false;  // element already drawn
 }
 #endif // USE_ACC
+
+static void osdElementUpDownReference(osdElementParms_t *element){
+/*
+    // Get pitch and roll limits in tenths of degrees
+    const int maxPitch = osdConfig()->ahMaxPitch * 10;
+    const int maxRoll = osdConfig()->ahMaxRoll * 10;
+    const int ahSign = osdConfig()->ahInvert ? -1 : 1;
+    const int rollAngle = constrain(attitude.values.roll * ahSign, -maxRoll, maxRoll);
+    int pitchAngle = constrain(attitude.values.pitch * ahSign, -maxPitch, maxPitch);
+    // Convert pitchAngle to y compensation value
+    // (maxPitch / 25) divisor matches previous settings of fixed divisor of 8 and fixed max AHI pitch angle of 20.0 degrees
+    if (maxPitch > 0) {
+        pitchAngle = ((pitchAngle * 25) / maxPitch);
+    }
+    pitchAngle -= 41; // 41 = 4 * AH_SYMBOL_COUNT + 5
+
+    for (int x = -4; x <= 4; x++) {
+        const int y = ((-rollAngle * x) / 64) - pitchAngle;
+        if (y >= 0 && y <= 81) {
+            osdDisplayWriteChar(element, element->elemPosX + x, element->elemPosY + (y / AH_SYMBOL_COUNT), DISPLAYPORT_ATTR_NONE, (SYM_AH_BAR9_0 + (y % AH_SYMBOL_COUNT)));
+        }
+    }
+*/
+
+    if(osdConfig()->upDownRefOn){
+        // Get pitch limit in tenths of degrees
+        const int maxPitch = osdConfig()->ahMaxPitch * 10;
+
+        if(abs(attitude.values.pitch)>600){
+        float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
+        int thetaB; // pitch from body frame to up vector
+        int psiBSign; // psi from body frame to up vector
+
+        char buf[3];
+
+        if(attitude.values.pitch>0.0){ //nose down
+            thetaB = asinf(earthUpinBodyFrame[2]) * (1800.0f / M_PIf); // get theta
+            psiBSign = -1; // correct the sign
+            buf[0] = 'D';
+            buf[1] = 'N';
+            buf[2] = 0;
+        }
+        else{// nose up
+            thetaB = -asinf(earthUpinBodyFrame[2]) * (1800.0f / M_PIf); // get theta 
+            psiBSign = 1; // correct the sign
+            buf[0] = 'U';
+            buf[1] = 'P';
+            buf[2] = 0;
+        }
+
+        int psiB = psiBSign*asinf(earthUpinBodyFrame[1]) * (1800.0f / M_PIf)/40; // calculate the yaw from body to up/down vector
+    
+        if (maxPitch > 0){
+            thetaB = ((thetaB*25)/maxPitch); // scale if appropriate
+        }
+
+        thetaB -= 41; // offset 41 = 4 * AH_SYMBOL_COUNT + 5
+        thetaB *= -1; // correct the sign
+
+        osdDisplayWrite(element, element->elemPosX+psiB, element->elemPosY + thetaB/AH_SYMBOL_COUNT, DISPLAYPORT_ATTR_NONE, buf);
+
+        }
+    }
+   element->drawElement = false;  // element already drawn
+}
+
 
 static void osdElementAverageCellVoltage(osdElementParms_t *element)
 {
