@@ -188,6 +188,8 @@ static uint32_t blinkBits[(OSD_ITEM_COUNT + 31) / 32];
 #define IS_BLINK(item) (blinkBits[(item) / 32] & (1 << ((item) % 32)))
 #define BLINK(item) (IS_BLINK(item) && blinkState)
 
+enum {UP, DOWN};
+
 static int osdDisplayWrite(osdElementParms_t *element, uint8_t x, uint8_t y, uint8_t attr, const char *s)
 {
     if (IS_BLINK(element->item)) {
@@ -606,49 +608,32 @@ static void osdElementArtificialHorizon(osdElementParms_t *element){
 }
 
 static void osdElementUpDownReference(osdElementParms_t *element){
-// Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
-// The positions are absolute and immutable by the user for consistent operation
-    if(abs(attitude.values.pitch)>450){ //pitch is greater than +45 or less than -45
-        float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
 
-        float thetaB; // pitch from body frame to up vector
-        int psiBSign; // psi from body frame to up vector
-        char buf[2]; // character buffer
+// Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
+
+    if(abs(attitude.values.pitch)>450){ //pitch is greater than +45 or less than -45
+        const float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
+
+        float thetaB; // pitch from body frame to zenith/nadir
+        float psiB; // psi from body frame to zenith/nadir
+        char *symbol[2] = {"U", "D"}; // character buffer
+        int direction;
 
         if(attitude.values.pitch>0.0){ //nose down
-            thetaB = -asinf(earthUpinBodyFrame[2]) * (180.0f / M_PIf); // get theta
-            psiBSign = -1; // correct the sign
-            buf[0] = '-';
-            buf[1] = 0;
+            thetaB = -earthUpinBodyFrame[2]; // get pitch w/re to nadir (use small angle approx for sine)
+            psiB = -earthUpinBodyFrame[1]; // calculate the yaw w/re to nadir (use small angle approx for sine)
+            direction = DOWN;
         }
-        else{// nose up
-            thetaB = asinf(earthUpinBodyFrame[2]) * (180.0f / M_PIf); // get theta 
-            psiBSign = 1; // correct the sign
-            buf[0] = '+';
-            buf[1] = 0;
+        else{ // nose up
+            thetaB = earthUpinBodyFrame[2]; // get pitch w/re to zenith (use small angle approx for sine)
+            psiB = earthUpinBodyFrame[1]; // calculate the yaw w/re to zenith (use small angle approx for sine)
+            direction = UP;
         }
 
-        int psiB = psiBSign*asinf(earthUpinBodyFrame[1]) * (180.0f / M_PIf); // calculate the yaw from body to up/down vector
+        int posX = element->elemPosX + round(scaleRangef(psiB, -M_PIf / 4, M_PIf / 4, -14, 14));
+        int posY = element->elemPosY + round(scaleRangef(thetaB, -M_PIf / 4, M_PIf / 4, -8, 8));
 
-//      Symbology Position Calculation 
-//
-//      ////// Y ////////
-//      OSD Pos  Row   ThetaB 
-//      Top    =  0    -55
-//      Mid    =  7      0
-//      Bottom = 15     55
-
-//      ////// X ////////
-//      OSD Pos Col   PsiB  
-//      Left   =  0    -59
-//      Mid    = 14      0
-//      Right  = 28     59
-
-        int posX = round(0.237288136*psiB+14.0); //col
-        int posY = round(0.136363636*thetaB+7.5); //row
-
-        osdDisplayWrite(element, posX, posY, DISPLAYPORT_ATTR_NONE, buf);
-
+        osdDisplayWrite(element, posX, posY, DISPLAYPORT_ATTR_NONE, symbol[direction]);
     }
     element->drawElement = false;  // element already drawn
 }
