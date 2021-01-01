@@ -321,7 +321,6 @@ void pgResetFn_osdConfig(osdConfig_t *osdConfig)
 
     osdConfig->osdProfileIndex = 1;
     osdConfig->ahInvert = false;
-    osdConfig->upDownRefOn = false;
     for (int i=0; i < OSD_PROFILE_COUNT; i++) {
         osdConfig->profile[i][0] = '\0';
     }
