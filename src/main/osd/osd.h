@@ -284,7 +284,6 @@ typedef struct osdConfig_s {
     int16_t esc_current_alarm;
     uint8_t core_temp_alarm;
     uint8_t ahInvert;                         // invert the artificial horizon
-    uint8_t upDownRefOn;
     uint8_t osdProfileIndex;
     uint8_t overlay_radio_mode;
     char profile[OSD_PROFILE_COUNT][OSD_PROFILE_NAME_LENGTH + 1];
