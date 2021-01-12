@@ -143,6 +143,8 @@
 
 #define MOTOR_STOPPED_THRESHOLD_RPM 1000
 
+#define PITCH_45_DEG 450
+
 #ifdef USE_OSD_STICK_OVERLAY
 typedef struct radioControls_s {
     uint8_t left_vertical;
@@ -177,8 +179,6 @@ static const char compassBar[] = {
 static unsigned activeOsdElementCount = 0;
 static uint8_t activeOsdElementArray[OSD_ITEM_COUNT];
 static bool backgroundLayerSupported = false;
-
-//extern float rMat[3][3];
 
 // Blink control
 static bool blinkState = true;
@@ -583,7 +583,8 @@ static void osdElementAntiGravity(osdElementParms_t *element)
 
 #ifdef USE_ACC
 
-static void osdElementArtificialHorizon(osdElementParms_t *element){
+static void osdElementArtificialHorizon(osdElementParms_t *element)
+{
     // Get pitch and roll limits in tenths of degrees
     const int maxPitch = osdConfig()->ahMaxPitch * 10;
     const int maxRoll = osdConfig()->ahMaxRoll * 10;
@@ -607,11 +608,11 @@ static void osdElementArtificialHorizon(osdElementParms_t *element){
     element->drawElement = false;  // element already drawn
 }
 
-static void osdElementUpDownReference(osdElementParms_t *element){
-
+static void osdElementUpDownReference(osdElementParms_t *element)
+{
 // Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
 
-    if(abs(attitude.values.pitch)>450){ //pitch is greater than +45 or less than -45
+    if(abs(attitude.values.pitch) > PITCH_45_DEG){ 
         const float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
 
         float thetaB; // pitch from body frame to zenith/nadir
@@ -623,8 +624,7 @@ static void osdElementUpDownReference(osdElementParms_t *element){
             thetaB = -earthUpinBodyFrame[2]; // get pitch w/re to nadir (use small angle approx for sine)
             psiB = -earthUpinBodyFrame[1]; // calculate the yaw w/re to nadir (use small angle approx for sine)
             direction = DOWN;
-        }
-        else{ // nose up
+        } else { // nose up
             thetaB = earthUpinBodyFrame[2]; // get pitch w/re to zenith (use small angle approx for sine)
             psiB = earthUpinBodyFrame[1]; // calculate the yaw w/re to zenith (use small angle approx for sine)
             direction = UP;
