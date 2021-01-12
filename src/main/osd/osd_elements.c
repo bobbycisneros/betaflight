@@ -180,8 +180,6 @@ static unsigned activeOsdElementCount = 0;
 static uint8_t activeOsdElementArray[OSD_ITEM_COUNT];
 static bool backgroundLayerSupported = false;
 
-//extern float rMat[3][3];
-
 // Blink control
 static bool blinkState = true;
 static uint32_t blinkBits[(OSD_ITEM_COUNT + 31) / 32];
@@ -585,7 +583,8 @@ static void osdElementAntiGravity(osdElementParms_t *element)
 
 #ifdef USE_ACC
 
-static void osdElementArtificialHorizon(osdElementParms_t *element){
+static void osdElementArtificialHorizon(osdElementParms_t *element)
+{
     // Get pitch and roll limits in tenths of degrees
     const int maxPitch = osdConfig()->ahMaxPitch * 10;
     const int maxRoll = osdConfig()->ahMaxRoll * 10;
@@ -609,22 +608,13 @@ static void osdElementArtificialHorizon(osdElementParms_t *element){
     element->drawElement = false;  // element already drawn
 }
 
-<<<<<<< HEAD
 static void osdElementUpDownReference(osdElementParms_t *element)
 {
 // Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
     const float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
 
     if (ABS(earthUpinBodyFrame[2]) < SINE_25_DEG && ABS(earthUpinBodyFrame[1]) < SINE_25_DEG) { 
-=======
-static void osdElementUpDownReference(osdElementParms_t *element){
 
-// Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
-
-    if(abs(attitude.values.pitch)>450){ //pitch is greater than +45 or less than -45
-        const float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
-
->>>>>>> 1fa1eced4... Updates to simplify/correct Up/Down OSD element
         float thetaB; // pitch from body frame to zenith/nadir
         float psiB; // psi from body frame to zenith/nadir
         char *symbol[2] = {"U", "D"}; // character buffer
@@ -634,20 +624,15 @@ static void osdElementUpDownReference(osdElementParms_t *element){
             thetaB = -earthUpinBodyFrame[2]; // get pitch w/re to nadir (use small angle approx for sine)
             psiB = -earthUpinBodyFrame[1]; // calculate the yaw w/re to nadir (use small angle approx for sine)
             direction = DOWN;
-<<<<<<< HEAD
+        } else { // nose up
+            thetaB = earthUpinBodyFrame[2]; // get pitch w/re to zenith (use small angle approx for sine)
+            psiB = earthUpinBodyFrame[1]; // calculate the yaw w/re to zenith (use small angle approx for sine)
+            direction = UP;
         } else { // nose up
             thetaB = earthUpinBodyFrame[2]; // get pitch w/re to zenith (use small angle approx for sine)
             psiB = earthUpinBodyFrame[1]; // calculate the yaw w/re to zenith (use small angle approx for sine)
             direction = UP;
         }
-=======
-        }
-        else{ // nose up
-            thetaB = earthUpinBodyFrame[2]; // get pitch w/re to zenith (use small angle approx for sine)
-            psiB = earthUpinBodyFrame[1]; // calculate the yaw w/re to zenith (use small angle approx for sine)
-            direction = UP;
-        }
->>>>>>> 1fa1eced4... Updates to simplify/correct Up/Down OSD element
 
         int posX = element->elemPosX + round(scaleRangef(psiB, -M_PIf / 4, M_PIf / 4, -14, 14));
         int posY = element->elemPosY + round(scaleRangef(thetaB, -M_PIf / 4, M_PIf / 4, -8, 8));
