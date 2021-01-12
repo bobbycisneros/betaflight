@@ -180,8 +180,6 @@ static unsigned activeOsdElementCount = 0;
 static uint8_t activeOsdElementArray[OSD_ITEM_COUNT];
 static bool backgroundLayerSupported = false;
 
-//extern float rMat[3][3];
-
 // Blink control
 static bool blinkState = true;
 static uint32_t blinkBits[(OSD_ITEM_COUNT + 31) / 32];
@@ -585,7 +583,8 @@ static void osdElementAntiGravity(osdElementParms_t *element)
 
 #ifdef USE_ACC
 
-static void osdElementArtificialHorizon(osdElementParms_t *element){
+static void osdElementArtificialHorizon(osdElementParms_t *element)
+{
     // Get pitch and roll limits in tenths of degrees
     const int maxPitch = osdConfig()->ahMaxPitch * 10;
     const int maxRoll = osdConfig()->ahMaxRoll * 10;
