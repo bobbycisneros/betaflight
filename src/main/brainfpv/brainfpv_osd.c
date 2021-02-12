@@ -619,10 +619,14 @@ void osdMain(void) {
     }
 }
 
-
-
-
+#define SINE_25_DEG 0.422618261740699f
+#define SINE_45_DEG 0.707106781186548f
 #define PITCH_STEP       10
+#define RAD2DEG 180.0f/M_PI
+#define XPSISCALE 0.9f/30.f
+#define YTHETASCALE 1.3f/30.f
+enum {UP, DOWN};
+
 static void simple_artificial_horizon(int16_t roll, int16_t pitch, int16_t x, int16_t y,
         int16_t width, int16_t height, int8_t max_pitch, uint8_t n_pitch_steps)
 {
@@ -700,9 +704,47 @@ static void simple_artificial_horizon(int16_t roll, int16_t pitch, int16_t x, in
             draw_line_outlined(pp_x2 + d_x / 3, pp_y2 - d_y / 3, pp_x2 + d_x, pp_y2 - d_y, 2, 2, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
         }
     }
+    // Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
+    const float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
+
+    if (ABS(earthUpinBodyFrame[2]) < SINE_45_DEG && ABS(earthUpinBodyFrame[1]) < SINE_45_DEG) { 
+        float thetaB; // pitch from body frame to zenith/nadir
+        float psiB; // psi from body frame to zenith/nadir
+        char *symbol[2] = {"U", "D"}; // character buffer
+        int direction;
+
+        if(attitude.values.pitch>0.0){ //nose down
+            thetaB = asinf(-earthUpinBodyFrame[2])*RAD2DEG; // get pitch w/re to nadir 
+            psiB = asinf(-earthUpinBodyFrame[1])*RAD2DEG; // calculate the yaw w/re to nadir 
+            direction = DOWN;
+        } else { // nose up
+            thetaB = asinf(earthUpinBodyFrame[2])*RAD2DEG; // get pitch w/re to zenith
+            psiB = asinf(earthUpinBodyFrame[1])*RAD2DEG; // calculate the yaw w/re to zenith 
+            direction = UP;
+        }
+
+        int poleX = x + psiB*width*XPSISCALE;
+        int poleY = y + thetaB*width*YTHETASCALE;
+
+        draw_string(symbol[direction], poleX+1, poleY, 0, 0, TEXT_VA_MIDDLE, TEXT_HA_CENTER, FONT_OUTLINED8X8);
+        draw_line_outlined(poleX + 6, poleY + 5, poleX + 6, poleY - 5, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX + 6, poleY - 5, poleX + 12, poleY, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX + 12, poleY, poleX + 6, poleY + 5, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+
+        draw_line_outlined(poleX - 7, poleY - 5, poleX - 7, poleY + 5, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX - 7, poleY + 5, poleX - 13, poleY, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX - 13, poleY, poleX - 7, poleY - 5, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+
+        draw_line_outlined(poleX + 5, poleY + 6, poleX - 5, poleY + 6, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX - 5, poleY + 6, poleX, poleY + 14, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX, poleY + 14, poleX + 5, poleY + 6, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+
+        draw_line_outlined(poleX + 5, poleY - 6, poleX - 5, poleY - 6, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX - 5, poleY - 6, poleX, poleY - 14, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+        draw_line_outlined(poleX, poleY - 14, poleX + 5, poleY - 6, 1, 1, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
+
+    }
 }
-
-
 
 #define FIX_RC_RANGE(x) (MIN(MAX(-500, x - 1500), 500))
 #define STICK_WIDTH 2
