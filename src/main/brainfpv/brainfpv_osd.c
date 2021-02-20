@@ -174,6 +174,7 @@ extern bfOsdConfig_t bfOsdConfigCms;
 static void simple_artificial_horizon(int16_t roll, int16_t pitch, int16_t x, int16_t y,
         int16_t width, int16_t height, int8_t max_pitch,
         uint8_t n_pitch_steps);
+static void displayUpdownReference(int16_t x, int16_t y, int16_t width);
 void draw_stick(int16_t x, int16_t y, int16_t horizontal, int16_t vertical);
 void draw_map_uav_center();
 void draw_hd_frame(const bfOsdConfig_t * config);
@@ -619,14 +620,7 @@ void osdMain(void) {
     }
 }
 
-#define SINE_25_DEG 0.422618261740699f
-#define SINE_45_DEG 0.707106781186548f
 #define PITCH_STEP       10
-#define RAD2DEG 180.0f/M_PI
-#define XPSISCALE 0.9f/30.f
-#define YTHETASCALE 1.3f/30.f
-enum {UP, DOWN};
-
 static void simple_artificial_horizon(int16_t roll, int16_t pitch, int16_t x, int16_t y,
         int16_t width, int16_t height, int8_t max_pitch, uint8_t n_pitch_steps)
 {
@@ -704,6 +698,16 @@ static void simple_artificial_horizon(int16_t roll, int16_t pitch, int16_t x, in
             draw_line_outlined(pp_x2 + d_x / 3, pp_y2 - d_y / 3, pp_x2 + d_x, pp_y2 - d_y, 2, 2, OSD_COLOR_BLACK, OSD_COLOR_WHITE);
         }
     }
+}
+
+
+#define RAD2DEG 180.0f/M_PI
+#define SINE_45_DEG 0.707106781186548f
+#define XPSISCALE 0.9f/30.f
+#define YTHETASCALE 1.3f/30.f
+enum {UP, DOWN};
+static void displayUpdownReference(int16_t x, int16_t y, int16_t width)
+{
     // Up/Down reference feature displays reference points on the OSD at Zenith and Nadir
     const float earthUpinBodyFrame[3] = {-rMat[2][0], -rMat[2][1], -rMat[2][2]}; //transforum the up vector to the body frame
 
@@ -921,6 +925,10 @@ void osdElementArtificialHorizon_BrainFPV(osdElementParms_t *element)
     element->drawElement = false;
 }
 
+void osdElementUpDownReference_BrainFPV(osdElementParms_t *element){
+    displayUpdownReference(GRAPHICS_X_MIDDLE, GRAPHICS_Y_MIDDLE, GRAPHICS_RIGHT * 0.8f);
+    element->drawElement = false;
+}
 
 void osdElementGpsHomeDirection_BrainFPV(osdElementParms_t *element)
 {

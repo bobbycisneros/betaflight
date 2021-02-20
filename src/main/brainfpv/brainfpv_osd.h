@@ -64,6 +64,7 @@ void brainFpvOsdMainLogo(uint16_t x, uint16_t y);
 
 void osdElementDummy_BrainFPV(osdElementParms_t *element);
 void osdElementArtificialHorizon_BrainFPV(osdElementParms_t *element);
+void osdElementUpDownReference_BrainFPV(osdElementParms_t *element);
 void osdElementGpsHomeDirection_BrainFPV(osdElementParms_t *element);
 void osdElementCraftName_BrainFPV(osdElementParms_t *element);
 void osdElementCrosshairs_BrainFPV(osdElementParms_t *element);

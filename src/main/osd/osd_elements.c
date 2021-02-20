@@ -1564,6 +1564,7 @@ static const uint8_t osdElementDisplayOrder[] = {
     OSD_RSSI_VALUE,
     OSD_CROSSHAIRS,
     OSD_HORIZON_SIDEBARS,
+    OSD_UP_DOWN_REFERENCE,
     OSD_ITEM_TIMER_1,
     OSD_ITEM_TIMER_2,
     OSD_REMAINING_TIME_ESTIMATE,
@@ -1639,6 +1640,7 @@ const osdElementDrawFn osdElementDrawFunction[OSD_ITEM_COUNT] = {
     [OSD_CAMERA_FRAME]            = NULL,  // only has background. Added first so it's the lowest "layer" and doesn't cover other elements
 #ifdef USE_ACC
     [OSD_ARTIFICIAL_HORIZON]      = osdElementArtificialHorizon_BrainFPV,
+    [OSD_UP_DOWN_REFERENCE]       = osdElementUpDownReference_BrainFPV,
 #endif
     [OSD_HORIZON_SIDEBARS]        = osdElementDummy_BrainFPV,
     [OSD_ITEM_TIMER_1]            = osdElementTimer,
@@ -1773,6 +1775,7 @@ void osdAddActiveElements(void)
     if (sensors(SENSOR_ACC)) {
         osdAddActiveElement(OSD_ARTIFICIAL_HORIZON);
         osdAddActiveElement(OSD_G_FORCE);
+        osdAddActiveElement(OSD_UP_DOWN_REFERENCE);
     }
 #endif
 
@@ -2035,7 +2038,8 @@ bool osdElementsNeedAccelerometer(void)
            osdElementIsActive(OSD_PITCH_ANGLE) ||
            osdElementIsActive(OSD_ROLL_ANGLE) ||
            osdElementIsActive(OSD_G_FORCE) ||
-           osdElementIsActive(OSD_FLIP_ARROW);
+           osdElementIsActive(OSD_FLIP_ARROW) ||
+           osdElementIsActive(OSD_UP_DOWN_REFERENCE);
 }
 
 #endif // USE_ACC
